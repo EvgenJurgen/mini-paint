@@ -3,13 +3,15 @@ import styled from 'styled-components'
 
 interface Props {
     type:string,
-    placeholder:string
+    placeholder:string,
+    name:string,
+    handleChange:any
 }
 
-export const Input = ({type, placeholder}:Props) =>{
+export const Input = ({type, placeholder, name, handleChange}:Props) =>{
     return (
         <Container>
-            <StyledInput placeholder={placeholder} type={type}
+            <StyledInput placeholder={placeholder} type={type} name={name} onChange={handleChange}
             required
             autoComplete='off'/>
         </Container>

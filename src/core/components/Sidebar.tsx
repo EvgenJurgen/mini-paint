@@ -2,11 +2,11 @@ import React from 'react'
 import styled from 'styled-components'
 
 
-export const Sidebar = (props:any) =>{
+export const Sidebar = ({submitHandler, children}:any) =>{
     return (
         <Container>
-           <Form>
-                {props.children}
+           <Form onSubmit={submitHandler}>
+                {children}
            </Form>
         </Container>
     )
