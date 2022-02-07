@@ -1,37 +1,107 @@
-import {put, takeEvery, call} from 'redux-saga/effects'
-import { useAddDoc, useLogIn, useSignUp } from '../hooks/firebase'
-import { loginUserFailid, loginUserSuccess, registerUserFailid, registerUserSuccess } from '../reducers/userReducer'
+import { put, takeEvery, call } from 'redux-saga/effects';
+import {
+	createUserWithEmailAndPassword,
+	onAuthStateChanged,
+	signInWithEmailAndPassword,
+	signOut,
+} from 'firebase/auth';
+import {
+	getUser,
+	getUserFailid,
+	getUserSuccess,
+	loginUserFailid,
+	logoutSuccess,
+	registerUserFailid,
+} from '../reducers/userReducer';
+import { auth, firestore } from '../configs/firebase.config';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
-function* addNicknameToUser(registeredUser:any):any{
-    yield call(()=>useAddDoc('users',{nickname:registeredUser.payload.nickname, uid:registeredUser.payload.uid}))
+async function writeUserData(user: any, nickname: string) {
+	try {
+		await setDoc(doc(firestore, 'users', user.uid), {
+			nickname,
+			email: user.email,
+		});
+	} catch {
+		throw new Error('Error recording user data');
+	}
 }
 
-function* registerUserWorker(registeredUser:any):any{
-    try{
-    const createdUser = yield call(()=>useSignUp(registeredUser.payload.email, registeredUser.payload.password))
-    const newUser = yield {email:createdUser.user.email, uid:createdUser.user.uid}
-    console.log(newUser)
-    // yield call(()=>addNicknameToUser(registerUserSuccess))
-    // newUser.nickname = registeredUser.payload.nickname
-    yield put(registerUserSuccess(newUser))
-    } catch (error:any){
-        yield put(registerUserFailid({error:error.message}))
-    }
+function* registerUserWorker({ payload }: any): any {
+	try {
+		const user = yield call(() =>
+			createUserWithEmailAndPassword(auth, payload.email, payload.password)
+		);
+		yield call(() => writeUserData(user.user, payload.nickname));
+		yield put(getUser());
+	} catch (error: any) {
+		yield put(registerUserFailid({ error: error.message }));
+	}
 }
 
-function* loginUserWorker(candidate:any):any{
-    try{
-    const authorizedUser = yield call(()=>useLogIn(candidate.payload.email, candidate.payload.password))
-    console.log('test data', authorizedUser)
-    yield put(loginUserSuccess(authorizedUser.user))
-    } catch(error:any){
-        yield put(loginUserFailid({error:error.message}))
-    }
+function* loginUserWorker({ payload }: any): any {
+	try {
+		yield call(() => signInWithEmailAndPassword(auth, payload.email, payload.password));
+		yield put(getUser());
+	} catch (error: any) {
+		yield put(loginUserFailid({ error: error.message }));
+	}
 }
 
+async function readUserData(userId: string) {
+	try {
+		const docRef = doc(firestore, 'users', userId);
+		const docSnap = await getDoc(docRef);
 
+		if (docSnap.exists()) {
+			return docSnap.data();
+		} else {
+			throw Error('Error receiving user data');
+		}
+	} catch {
+		throw new Error('Error reading user data');
+	}
+}
 
-export function* userSaga(){
-    yield takeEvery('user/loginUser', loginUserWorker)
-    yield takeEvery('user/registerUser', registerUserWorker)
+async function onAuthStateChangedUser() {
+	return await new Promise((resolve, reject) => {
+		onAuthStateChanged(auth, (user: any) => {
+			resolve(user);
+		});
+	});
+}
+
+function* getCurrentUserWorker(): any {
+	try {
+		const currentUser = yield call(() => onAuthStateChangedUser());
+		const userData = yield call(() => readUserData(currentUser.uid));
+		yield call(() => {
+			currentUser.nickname = userData.nickname;
+		});
+		yield put(getUserSuccess(currentUser));
+	} catch (e: any) {
+		switch(e.message){
+			case 'Error reading user data':
+				yield put(getUserFailid({ error: e.message }));
+				break;
+			default:
+				yield put(getUserFailid({ error: '' }));
+		}
+	}
+}
+
+function* logoutWorker(): any {
+	try {
+		yield call(() => signOut(auth));
+		yield put(logoutSuccess());
+	} catch (e: any) {
+		console.log({ error: e.message });
+	}
+}
+
+export function* userSaga() {
+	yield takeEvery('user/loginUser', loginUserWorker);
+	yield takeEvery('user/registerUser', registerUserWorker);
+	yield takeEvery('user/getUser', getCurrentUserWorker);
+	yield takeEvery('user/logout', logoutWorker);
 }

@@ -1,50 +1,77 @@
-import React, { useState } from 'react'
-import { Input } from '../../core/components/Input'
-import { Main } from '../../core/components/Main'
-import { Sidebar } from '../../core/components/Sidebar'
-import { StartingBackground } from '../../core/components/StartingBackground'
-import { useAppDispatch, useAppSelector } from '../../core/hooks/redux'
-import { registerUser } from '../../core/reducers/userReducer'
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import styled from 'styled-components';
+import { Container } from '../../core/components/Container';
+import { Form } from '../../core/components/Form';
+import { Input } from '../../core/components/Input';
+import { MainStyle } from '../../core/components/Main';
+import { WorkingAria } from '../../core/components/WorkingAria';
+import { useAppDispatch } from '../../core/hooks/redux';
+import { registerUser } from '../../core/reducers/userReducer';
 
+export const RegisterPage = () => {
+	const dispatch = useAppDispatch();
 
-export const RegisterPage = () =>{
+	const [user, setUser] = useState({ nickname: '', email: '', password: '' });
 
-    const authorizedUser = useAppSelector(state=>state.user.user)
-    const error = useAppSelector(state=>state.user.error)
-    const dispatch = useAppDispatch();
+	const handleChange = (event: any) => {
+		setUser((prevState) => ({
+			...prevState,
+			[event.target.name]: event.target.value,
+		}));
+	};
 
-    const [user, setUser] = useState({nickname:'', email:'', password:'', repeatedPassword:''})
+	const submitHandler = (event: any) => {
+		event.preventDefault();
+		dispatch(registerUser(user));
+	};
 
-    const handleChange = (event:any) =>{
-        setUser(prevState =>({
-            ...prevState, [event.target.name]: event.target.value
-        }))
-    }
+	// return (
+	// 	<form onSubmit={submitHandler}>
+			// <Input type="text" placeholder="Nickname" name="nickname" handleChange={handleChange} />
+			// <Input type="email" placeholder="Email" name="email" handleChange={handleChange} />
+			// <Input type="password" placeholder="Password" name="password" handleChange={handleChange} />
 
-    console.log('registered user',authorizedUser)
-    console.log('error', error)
+			// <button type="submit">Sign up</button>
 
-    const submitHandler = (event:any) =>{
-        event.preventDefault()
-        dispatch(registerUser(user))
-    }
+			// <div>
+			// 	<h4>
+			// 		Already have an account? <Link to={'/login'}>Log In</Link>
+			// 	</h4>
+			// </div>
+	// 	</form>
+	// );
 
-    return (
-        <StartingBackground>
-            <Sidebar submitHandler={submitHandler}>
-                <h3>Sign up</h3>
-                <Input type="text" placeholder="Nickname" name="nickname" handleChange={handleChange}/>
-                <Input type="email" placeholder="Email" name="email" handleChange={handleChange}/>
-                <Input type="password" placeholder="Password" name="password" handleChange={handleChange}/>
-                <Input type="password" placeholder="Repeat Password" name="repeatedPassword" handleChange={handleChange}/>
-                <button type='submit'>Sign up</button>
-                <div>
-                <h4>
-                    Already have an account? <a href='/login'>Log In</a>
-                </h4>
-                </div>
-            </Sidebar>
-            <Main message="Join Our Team"/>
-        </StartingBackground>
-    )
-}
+	return (
+		<Container>
+			<WorkingAria>
+				<Main>
+					<Form onSubmit={submitHandler}>
+						<Input type="text" placeholder="Nickname" name="nickname" handleChange={handleChange} />
+						<Input type="email" placeholder="Email" name="email" handleChange={handleChange} />
+						<Input
+							type="password"
+							placeholder="Password"
+							name="password"
+							handleChange={handleChange}
+						/>
+
+						<button type="submit">Sign up</button>
+
+						<div>
+							<h4>
+								Already have an account? <Link to={'/login'}>Log In</Link>
+							</h4>
+						</div>
+					</Form>
+				</Main>
+			</WorkingAria>
+		</Container>
+	);
+};
+
+const Main = styled(MainStyle)`
+	width: 100%;
+	background-color: ${({ theme }) => theme.primary};
+	border: none;
+`;
