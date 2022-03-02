@@ -1,208 +1,164 @@
 import React, { useEffect, useMemo, useState } from 'react';
+
 import { useNavigate } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../core/hooks/redux';
-import { logout } from '../../core/reducers/userReducer';
+
+import { useAppSelector } from '../../core/hooks/redux';
+import { useDispatch } from 'react-redux';
+
+import { logout } from '../../core/actions/userActions';
+
+import { getImagesOfAllUsers } from '../../core/actions/imageActions';
+
 import { AiOutlinePicture, AiOutlineUser, AiOutlineSearch } from 'react-icons/ai';
 import { IoArrowBack } from 'react-icons/io5';
 import { FiLogOut } from 'react-icons/fi';
-import styled from 'styled-components';
-import { WorkingAriaStyle } from '../../core/components/WorkingAria';
-import { Header, HeaderStyle } from '../../core/components/Header';
-import { HeaderButtons, HeaderButtonsStyle } from '../../core/components/HeaderButtons';
-import { HeaderButtonsItem, HeaderButtonsItemStyle } from '../../core/components/HeaderButtonsItem';
-import { getImagesOfAllUsers, ImagesLinksWithUserData } from '../../core/reducers/imagesReducer';
-import { CardsMain } from '../../core/components/CardsMain';
-import { Card } from '../../core/components/Card';
 
-export const HomePage = () => {
-	const dispatch = useAppDispatch();
-	const { imagesOfAllUsers } = useAppSelector((state) => state.images);
+import { Header } from '../../core/styles/styled-header';
+import { HeaderButtons } from '../../core/styles/styled-header-buttons';
+import { HeaderButtonsItem } from '../../core/styles/styled-header-buttons-item';
+import { Card } from '../../core/styles/styled-card';
+import { CardsMain } from '../../core/styles/styled-cards-main';
 
-	useEffect(() => {
-		dispatch(getImagesOfAllUsers());
-	}, []);
+import { MobileSearch } from './styles/styled-mobile-search';
+import { Search } from './styles/styled-search';
+import { Logo } from './styles/styled-logo';
+import { MobileSearchHeaderButtons } from './styles/styled-mobile-siarch-header-buttons';
+import { SearchButton } from './styles/styled-search-button';
+import { LogoutButton } from './styles/styled-logout-botton';
+import { UserInformation } from './styles/styled-user-information';
+import { WorkingArea } from './styles/styled-working-area';
+import { MobileSearchHeaderStyle } from './styles/styled-mobile-search-header';
 
-	const [authorOfImages, setAuthorOfImages] = useState('');
+import { EDIT_ROUTE, PROFILE_ROUTE } from '../AppRoutes';
+import { UserDataWithImages } from '../../core/interfaces/payloads/ArrayOfUserDataWithImages';
 
-	const images = useMemo(() => {
-		if (!authorOfImages) {
-			return imagesOfAllUsers;
-		}
-		const selectedAuthor = imagesOfAllUsers.filter((user) => user.nickname === authorOfImages);
-		if (selectedAuthor.length === 0) {
-			return [];
-		} else {
-			return selectedAuthor;
-		}
-	}, [imagesOfAllUsers, authorOfImages]);
+const LOGO_TEXT = 'Mini-paint';
+const SEARCH_PLACEHOLDER_TEXT = 'Поиск';
 
-	const getImagesCardsOfUser = (user: ImagesLinksWithUserData) => {
-		return user.urls.map((url) => {
-			return (
-				<Card key={url}>
-					<UserInformation>
-						<h2>{user.nickname}</h2>
-						<p>{user.email}</p>
-					</UserInformation>
-					<img src={url} />
-				</Card>
-			);
-		});
-	};
+export const HomePage = (): React.ReactElement => {
+  const dispatch = useDispatch();
+  const { imagesOfAllUsers } = useAppSelector((state) => state.images);
 
-	const imagesCards = useMemo(() => {
-		return images.map((userImages) => getImagesCardsOfUser(userImages));
-	}, [images]);
+  useEffect(() => {
+    dispatch(getImagesOfAllUsers());
+  }, []);
 
-	const handleLogout = () => {
-		dispatch(logout());
-	};
+  const [authorOfImages, setAuthorOfImages] = useState('');
 
-	const navigate = useNavigate();
+  const images = useMemo(() => {
+    if (!authorOfImages) {
+      return imagesOfAllUsers;
+    }
+    const selectedAuthor = imagesOfAllUsers.filter((user) => user.nickname === authorOfImages);
+    if (selectedAuthor.length === 0) {
+      return [];
+    } else {
+      return selectedAuthor;
+    }
+  }, [imagesOfAllUsers, authorOfImages]);
 
-	const [isOpenMobileSearch, setIsOpenMobileSearch] = useState(false);
+  const getImagesCardsOfUser = (user: UserDataWithImages) => {
+    return user.urls.map((url) => {
+      return (
+        <Card key={url}>
+          <UserInformation>
+            <h2>{user.nickname}</h2>
+            <p>{user.email}</p>
+          </UserInformation>
+          <img src={url} />
+        </Card>
+      );
+    });
+  };
 
-	const handleKeyDown = (event: any) => {
-		if (event.key === 'Enter') {
-			setAuthorOfImages(event.target.value);
-		} else if (
-			(event.key === 'Delete' || event.key === 'Backspace') &&
-			event.target.value.length <= 1
-		) {
-			setAuthorOfImages('');
-		}
-	};
+  const imagesCards = useMemo(() => {
+    return images.map((userImages) => getImagesCardsOfUser(userImages));
+  }, [images]);
 
-	return (
-		<>
+  const handleSetIsOpenMobileSearch = () => {
+    setIsOpenMobileSearch(!isOpenMobileSearch);
+  };
 
-			<MobileSearchHeader
-				isOpen={isOpenMobileSearch}
-				onClick={() => setIsOpenMobileSearch(false)}
-				onKeyDown={handleKeyDown}
-			/>
-			<Header>
-				<Logo>Mini-paint</Logo>
+  const navigate = useNavigate();
 
-				<Search type="text" placeholder="Поиск" onKeyDown={handleKeyDown} />
+  const handleNavigateToEditPage = () => {
+    navigate(EDIT_ROUTE);
+  };
 
-				<HeaderButtons>
-					<SearchButton>
-						<AiOutlineSearch onClick={() => setIsOpenMobileSearch(true)} />
-					</SearchButton>
-					<HeaderButtonsItem>
-						<AiOutlinePicture onClick={() => navigate('/edit')} />
-					</HeaderButtonsItem>
-					<HeaderButtonsItem>
-						<AiOutlineUser onClick={() => navigate('/profile')} />
-					</HeaderButtonsItem>
-					<LogoutButton>
-						<FiLogOut onClick={() => handleLogout()} />
-					</LogoutButton>
-				</HeaderButtons>
-			</Header>
-			<WorkingAria>
-				<CardsMain>{imagesCards}</CardsMain>
-			</WorkingAria>
-		</>
-	);
+  const handleNavigateToProfilePage = () => {
+    navigate(PROFILE_ROUTE);
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
+  };
+
+  const [isOpenMobileSearch, setIsOpenMobileSearch] = useState(false);
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    const value = (event.target as HTMLInputElement).value;
+    if (event.key === 'Enter') {
+      setAuthorOfImages(value);
+    } else if ((event.key === 'Delete' || event.key === 'Backspace') && value.length <= 1) {
+      setAuthorOfImages('');
+    }
+  };
+
+  return (
+    <>
+      <MobileSearchHeader
+        isOpen={isOpenMobileSearch}
+        onClick={handleSetIsOpenMobileSearch}
+        onKeyDown={handleKeyDown}
+      />
+      <Header>
+        <Logo>{LOGO_TEXT}</Logo>
+
+        <Search type="text" placeholder={SEARCH_PLACEHOLDER_TEXT} onKeyDown={handleKeyDown} />
+
+        <HeaderButtons>
+          <SearchButton>
+            <AiOutlineSearch onClick={handleSetIsOpenMobileSearch} />
+          </SearchButton>
+          <HeaderButtonsItem>
+            <AiOutlinePicture onClick={handleNavigateToEditPage} />
+          </HeaderButtonsItem>
+          <HeaderButtonsItem>
+            <AiOutlineUser onClick={handleNavigateToProfilePage} />
+          </HeaderButtonsItem>
+          <LogoutButton>
+            <FiLogOut onClick={handleLogout} />
+          </LogoutButton>
+        </HeaderButtons>
+      </Header>
+      <WorkingArea>
+        <CardsMain>{imagesCards}</CardsMain>
+      </WorkingArea>
+    </>
+  );
 };
 
-const MobileSearchHeader = ({ isOpen, onClick, onKeyDown }: any) => {
-	return (
-		<>
-			{isOpen && (
-				<MobileSearchHeaderStyle>
-					<MobileSearchHeaderButtons>
-						<HeaderButtonsItem>
-							<IoArrowBack onClick={onClick} />
-						</HeaderButtonsItem>
-						<div>
-							<MobileSearch placeholder="Поиск" onKeyDown={onKeyDown} />
-						</div>
-					</MobileSearchHeaderButtons>
-				</MobileSearchHeaderStyle>
-			)}
-		</>
-	);
+interface MobileSearchHeaderInterface {
+  isOpen: boolean;
+  onClick: React.MouseEventHandler<SVGElement>;
+  onKeyDown: React.KeyboardEventHandler<HTMLInputElement>;
+}
+
+const MobileSearchHeader = ({ isOpen, onClick, onKeyDown }: MobileSearchHeaderInterface) => {
+  return (
+    <>
+      {isOpen && (
+        <MobileSearchHeaderStyle>
+          <MobileSearchHeaderButtons>
+            <HeaderButtonsItem>
+              <IoArrowBack onClick={onClick} />
+            </HeaderButtonsItem>
+            <div>
+              <MobileSearch placeholder={SEARCH_PLACEHOLDER_TEXT} onKeyDown={onKeyDown} />
+            </div>
+          </MobileSearchHeaderButtons>
+        </MobileSearchHeaderStyle>
+      )}
+    </>
+  );
 };
-
-const WorkingAria = styled(WorkingAriaStyle)`
-	top: 0;
-	transform: none;
-`;
-
-const Logo = styled.div`
-	font-size: 2rem;
-	font-weight: 700;
-
-	@media (max-width: 768px) {
-		font-size: 1.2rem;
-	}
-`;
-
-const Search = styled.input`
-	width: 13rem;
-	height: 1.75rem;
-	background-color: ${({ theme }) => theme.primary};
-	border: 1px solid ${({ theme }) => theme.borderColor};
-	border-radius: 3px;
-	padding: 0 0.5rem;
-	color: ${({ theme }) => theme.textColor};
-
-	@media (max-width: 768px) {
-		width: 0;
-		height: 0;
-		border: none;
-	}
-`;
-
-const MobileSearch = styled.input`
-	width: 90vw;
-	height: 3rem;
-	background-color: ${({ theme }) => theme.primary};
-	color: ${({ theme }) => theme.textColor};
-	padding: 0 0.5rem;
-	border: none;
-`;
-
-const MobileSearchHeaderStyle = styled(HeaderStyle)`
-	z-index: 2;
-`;
-
-const MobileSearchHeaderButtons = styled(HeaderButtonsStyle)`
-	width: 10%;
-`;
-
-const SearchButton = styled(HeaderButtonsItemStyle)`
-	@media (min-width: 768px) {
-		font-size: 0;
-	}
-`;
-
-const LogoutButton = styled(HeaderButtonsItemStyle)`
-	color: #a2242f;
-	&:hover {
-		color: #ed5a68;
-	}
-`;
-
-const UserInformation = styled.div`
-	height: auto;
-	width: 100%;
-	border-bottom: 1px solid ${({ theme }) => theme.borderColor};
-	padding: 0.1rem 0.5rem;
-	h2 {
-		font-size: 1.5rem;
-		@media (max-width: 768px) {
-			font-size: 1.2rem;
-		}
-	}
-
-	p {
-		font-size: 1rem;
-		@media (max-width: 768px) {
-			font-size: 0.7rem;
-		}
-	}
-`;

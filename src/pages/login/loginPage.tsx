@@ -1,59 +1,80 @@
 import React, { useState } from 'react';
+
 import { Link } from 'react-router-dom';
-import styled from 'styled-components';
-import { Container } from '../../core/components/Container';
-import { Form } from '../../core/components/Form';
-import { Input } from '../../core/components/Input';
-import { MainStyle } from '../../core/components/Main';
-import { WorkingAria } from '../../core/components/WorkingAria';
-import { useAppDispatch } from '../../core/hooks/redux';
-import { loginUser } from '../../core/reducers/userReducer';
 
-export const LoginPage = () => {
-	const dispatch = useAppDispatch();
+import { useDispatch } from 'react-redux';
 
-	const [user, setUser] = useState({ email: '', password: '' });
+import { loginUser } from '../../core/actions/userActions';
 
-	const handleChange = (event: any) => {
-		setUser((prevState) => ({
-			...prevState,
-			[event.target.name]: event.target.value,
-		}));
-	};
+import { Form } from '../../core/components/Form/Form';
+import { Input } from '../../core/components/Input/Input';
 
-	const submitHandler = (event: any) => {
-		event.preventDefault();
-		dispatch(loginUser(user));
-	};
+import { Container } from '../../core/styles/styled-container';
+import { WorkingArea } from '../../core/styles/styled-working-area';
 
-	return (
-		<Container>
-			<WorkingAria>
-				<Main>
-					<Form onSubmit={submitHandler}>
-						<Input type="email" placeholder="Email" name="email" handleChange={handleChange} />
-						<Input
-							type="password"
-							placeholder="Password"
-							name="password"
-							handleChange={handleChange}
-						/>
-						<button type="submit">Log in</button>
+import { Main } from './styles/styled-main';
 
-						<div>
-							<h4>
-								Already have an account? <Link to={'/'}>Register</Link>
-							</h4>
-						</div>
-					</Form>
-				</Main>
-			</WorkingAria>
-		</Container>
-	);
+import { REGISTER_ROUTE } from '../AppRoutes';
+
+const EMAIL = 'email';
+const PASSWORD = 'password';
+
+const INPUT_EMAIL_PLACEHOLDER_TEXT = 'Email';
+const INPUT_PASSWORD_PLACEHOLDER_TEXT = 'Password';
+const LOG_IN_BUTTON_TEXT = 'Log in';
+const TEXT_OF_REGISTRATION_OFFER = 'Do you want to create a new account?';
+const LINK_TO_REGISTER_PAGE_TEXT = 'Register';
+
+export const LoginPage = (): React.ReactElement => {
+  const dispatch = useDispatch();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    switch (event.target.name) {
+      case EMAIL:
+        setEmail(event.target.value);
+        break;
+      case PASSWORD:
+        setPassword(event.target.value);
+        break;
+    }
+  };
+
+  const submitHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    dispatch(loginUser({ email, password }));
+  };
+
+  return (
+    <Container>
+      <WorkingArea>
+        <Main>
+          <Form onSubmit={submitHandler}>
+            <Input
+              type="email"
+              placeholder={INPUT_EMAIL_PLACEHOLDER_TEXT}
+              name={EMAIL}
+              handleChange={handleChange}
+            />
+            <Input
+              type="password"
+              placeholder={INPUT_PASSWORD_PLACEHOLDER_TEXT}
+              name={PASSWORD}
+              handleChange={handleChange}
+            />
+            <button type="submit">{LOG_IN_BUTTON_TEXT}</button>
+
+            <div>
+              <h4>
+                {TEXT_OF_REGISTRATION_OFFER}{' '}
+                <Link to={REGISTER_ROUTE}>{LINK_TO_REGISTER_PAGE_TEXT}</Link>
+              </h4>
+            </div>
+          </Form>
+        </Main>
+      </WorkingArea>
+    </Container>
+  );
 };
-
-const Main = styled(MainStyle)`
-	width: 100%;
-	background-color: ${({theme})=>theme.primary};
-	border: none;
-`;

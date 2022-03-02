@@ -1,8 +1,10 @@
-import { combineReducers } from '@reduxjs/toolkit';
+import { combineReducers } from 'redux';
+import imageReducer from './imageReducer';
 import userReducer from './userReducer';
-import imagesReducer from './imagesReducer';
 
 export const rootReducer = combineReducers({
-	user: userReducer,
-	images: imagesReducer,
+  user: userReducer,
+  images: imageReducer,
 });
+
+export type State = ReturnType<typeof rootReducer>;

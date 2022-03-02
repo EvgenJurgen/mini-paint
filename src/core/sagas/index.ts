@@ -1,7 +1,11 @@
-import { all } from 'redux-saga/effects';
-import { imagesSaga } from './imagesSaga';
-import { userSaga } from './userSaga';
+import { all, AllEffect, ForkEffect } from 'redux-saga/effects';
+import { imagesSaga } from './imagesSaga/index';
+import { userSaga } from './userSaga/index';
 
-export function* rootSaga() {
-	yield all([userSaga(), imagesSaga()]);
+export function* rootSaga(): Generator<
+  AllEffect<Generator<AllEffect<Generator<ForkEffect<never>, void, unknown>>, void, unknown>>,
+  void,
+  unknown
+> {
+  yield all([userSaga(), imagesSaga()]);
 }

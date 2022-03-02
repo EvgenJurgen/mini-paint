@@ -1,77 +1,91 @@
 import React, { useState } from 'react';
+
 import { Link } from 'react-router-dom';
-import styled from 'styled-components';
-import { Container } from '../../core/components/Container';
-import { Form } from '../../core/components/Form';
-import { Input } from '../../core/components/Input';
-import { MainStyle } from '../../core/components/Main';
-import { WorkingAria } from '../../core/components/WorkingAria';
-import { useAppDispatch } from '../../core/hooks/redux';
-import { registerUser } from '../../core/reducers/userReducer';
 
-export const RegisterPage = () => {
-	const dispatch = useAppDispatch();
+import { useDispatch } from 'react-redux';
 
-	const [user, setUser] = useState({ nickname: '', email: '', password: '' });
+import { registerUser } from '../../core/actions/userActions';
 
-	const handleChange = (event: any) => {
-		setUser((prevState) => ({
-			...prevState,
-			[event.target.name]: event.target.value,
-		}));
-	};
+import { Form } from '../../core/components/Form/Form';
+import { Input } from '../../core/components/Input/Input';
 
-	const submitHandler = (event: any) => {
-		event.preventDefault();
-		dispatch(registerUser(user));
-	};
+import { Container } from '../../core/styles/styled-container';
+import { Main } from './styles/styled-main';
+import { WorkingArea } from '../../core/styles/styled-working-area';
 
-	// return (
-	// 	<form onSubmit={submitHandler}>
-			// <Input type="text" placeholder="Nickname" name="nickname" handleChange={handleChange} />
-			// <Input type="email" placeholder="Email" name="email" handleChange={handleChange} />
-			// <Input type="password" placeholder="Password" name="password" handleChange={handleChange} />
+import { LOGIN_ROUTE } from '../AppRoutes';
 
-			// <button type="submit">Sign up</button>
+const NICKNAME = 'nickname';
+const EMAIL = 'email';
+const PASSWORD = 'password';
 
-			// <div>
-			// 	<h4>
-			// 		Already have an account? <Link to={'/login'}>Log In</Link>
-			// 	</h4>
-			// </div>
-	// 	</form>
-	// );
+const INPUT_NICKNAME_PLACEHOLDER_TEXT = 'Nickname';
+const INPUT_EMAIL_PLACEHOLDER_TEXT = 'Email';
+const INPUT_PASSWORD_PLACEHOLDER_TEXT = 'Password';
+const SIGN_IN_BUTTON_TEXT = 'Sign in';
+const TEXT_OF_LOG_IN_OFFER = 'Already have an account?';
+const LINK_TO_LOG_IN_PAGE_TEXT = 'Log in';
 
-	return (
-		<Container>
-			<WorkingAria>
-				<Main>
-					<Form onSubmit={submitHandler}>
-						<Input type="text" placeholder="Nickname" name="nickname" handleChange={handleChange} />
-						<Input type="email" placeholder="Email" name="email" handleChange={handleChange} />
-						<Input
-							type="password"
-							placeholder="Password"
-							name="password"
-							handleChange={handleChange}
-						/>
+export const RegisterPage = (): React.ReactElement => {
+  const dispatch = useDispatch();
 
-						<button type="submit">Sign up</button>
+  const [nickname, setNickname] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-						<div>
-							<h4>
-								Already have an account? <Link to={'/login'}>Log In</Link>
-							</h4>
-						</div>
-					</Form>
-				</Main>
-			</WorkingAria>
-		</Container>
-	);
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    switch (event.target.name) {
+      case NICKNAME:
+        setNickname(event.target.value);
+        break;
+      case EMAIL:
+        setEmail(event.target.value);
+        break;
+      case PASSWORD:
+        setPassword(event.target.value);
+        break;
+    }
+  };
+
+  const submitHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    dispatch(registerUser({ nickname, email, password }));
+  };
+
+  return (
+    <Container>
+      <WorkingArea>
+        <Main>
+          <Form onSubmit={submitHandler}>
+            <Input
+              type="text"
+              placeholder={INPUT_NICKNAME_PLACEHOLDER_TEXT}
+              name={NICKNAME}
+              handleChange={handleChange}
+            />
+            <Input
+              type="email"
+              placeholder={INPUT_EMAIL_PLACEHOLDER_TEXT}
+              name={EMAIL}
+              handleChange={handleChange}
+            />
+            <Input
+              type="password"
+              placeholder={INPUT_PASSWORD_PLACEHOLDER_TEXT}
+              name={PASSWORD}
+              handleChange={handleChange}
+            />
+
+            <button type="submit">{SIGN_IN_BUTTON_TEXT}</button>
+
+            <div>
+              <h4>
+                {TEXT_OF_LOG_IN_OFFER} <Link to={LOGIN_ROUTE}>{LINK_TO_LOG_IN_PAGE_TEXT}</Link>
+              </h4>
+            </div>
+          </Form>
+        </Main>
+      </WorkingArea>
+    </Container>
+  );
 };
-
-const Main = styled(MainStyle)`
-	width: 100%;
-	background-color: ${({ theme }) => theme.primary};
-	border: none;
-`;
